@@ -8,6 +8,13 @@ from models import setup_db, Question, Category, db
 
 QUESTIONS_PER_PAGE = 10
 
+def paginate_questions(request, questions):
+  page = request.args.get('page', 1, type=int)
+  start = (page-1)*QUESTIONS_PER_PAGE
+  end = start + QUESTIONS_PER_PAGE
+  formatted_questions = [q.format() for q in questions]
+  return formatted_questions[start:end]
+
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
@@ -60,6 +67,31 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+  @app.route('/questions')
+  def get_questions():
+    try:
+      questions = Question.query.order_by(Question.id).all()
+      curr_page_formatted_questions = paginate_questions(request, questions)
+      
+      categories = Category.query.order_by(Category.id).all()
+      res = {}
+      for c in categories:
+        res[c.id] = c.type
+      
+      if not curr_page_formatted_questions or not res:
+        abort(404)
+
+      return jsonify({
+          'success': True,
+          'questions': curr_page_formatted_questions,
+          'totalQuestions': len(questions),
+          'categories': res,
+          'currentCategory': None 
+      })
+    except:
+      abort(404)
+
+
 
   '''
   @TODO: 
@@ -118,6 +150,37 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
+  @app.errorhandler(404)
+  def not_found(error):
+    return jsonify({
+        "success": False, 
+        "error": 404,
+        "message": "resource not found"
+        }), 404
+
+  @app.errorhandler(422)
+  def unprocessable(error):
+    return jsonify({
+        "success": False, 
+        "error": 422,
+        "message": "unprocessable"
+        }), 422
+  
+  @app.errorhandler(405)
+  def method_not_allowed(error):
+    return jsonify({
+        "success": False, 
+        "error": 405,
+        "message": "method not allowed"
+        }), 405
+  
+  @app.errorhandler(400)
+  def bad_request(error):
+    return jsonify({
+        "success": False, 
+        "error": 400,
+        "message": "bad request"
+        }), 400
   
   return app
 
