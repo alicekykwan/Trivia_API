@@ -6,6 +6,8 @@ import random
 
 from models import setup_db, Question, Category, db
 
+SECRET_KEY = os.urandom(32)
+
 QUESTIONS_PER_PAGE = 10
 
 
