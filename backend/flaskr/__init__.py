@@ -110,7 +110,7 @@ def create_app(test_config=None):
     try:
       question = Question.query.filter(Question.id == question_id).one_or_none()
       if question is None:
-        abort(404)
+        abort(422)
       db.session.delete(question)
       db.session.commit()
       return jsonify({
@@ -155,6 +155,8 @@ def create_app(test_config=None):
         })
 
       else:
+        if any(field is None for field in [question, answer, difficulty, category]):
+          abort(422)
         newQuestion = Question(question = question, answer = answer, difficulty = difficulty, category = category)
         db.session.add(newQuestion)
         db.session.commit()
@@ -204,7 +206,8 @@ def create_app(test_config=None):
         res[c.id] = c.type
       
       if not curr_page_formatted_questions or not res:
-        abort(404)
+      #if not res: #<-- returns blank page if category does not contain question
+        abort(422)
 
       return jsonify({
         'success': True,
@@ -235,13 +238,18 @@ def create_app(test_config=None):
     body = request.get_json()
     previous_questions = body.get('previous_questions', [])
     quiz_category = body.get('quiz_category', None)
+    categories = _get_categories()
 
     if quiz_category is None:
       abort(400)
-    if quiz_category['id'] == 0: #all categories
+    quiz_category_id = int(quiz_category['id'])
+    if quiz_category_id > 0 and quiz_category_id not in categories:
+      abort(404)
+
+    if quiz_category_id == 0: #all categories
       questions = Question.query.filter(~Question.id.in_(previous_questions)).all()
     else:
-      questions = Question.query.filter(Question.category == quiz_category['id']).filter(~Question.id.in_(previous_questions)).all()
+      questions = Question.query.filter(Question.category == quiz_category_id).filter(~Question.id.in_(previous_questions)).all()
 
     n = len(questions)
     if n > 0:
