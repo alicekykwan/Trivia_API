@@ -143,6 +143,23 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], "resource not found")
 
+    def test_add_category(self):
+        res = self.client().post('/categories', 
+            json={'newCategory': 'Pop Culture'})
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['created'])
+    
+    def test_failed_add_category(self):
+        res = self.client().post('/categories')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], "unprocessable")
+    
+
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()

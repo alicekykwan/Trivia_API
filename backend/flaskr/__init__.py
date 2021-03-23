@@ -264,6 +264,30 @@ def create_app(test_config=None):
       'question': random_question
     })
 
+  '''
+  BONUS - Add New Category in the "Add" page
+  '''
+  @app.route('/categories', methods=['POST'])
+  def add_category():
+    try:
+      body = request.get_json()
+      category = body.get('newCategory', None)
+      
+      if not category:
+        abort(422)
+      newCategory = Category(type = category)
+      db.session.add(newCategory)
+      db.session.commit()
+      return jsonify({
+        'success': True,
+        'created': newCategory.id
+      })
+
+    except:
+      abort(422)
+    finally:
+      db.session.close()
+  
 
   '''
   @TODO: 

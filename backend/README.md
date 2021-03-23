@@ -263,6 +263,21 @@ CREATE:
   }
   ```
 
+### POST /categories
+- General
+  - Creates a new category using the parameters passed. 
+  - Returns the id of the newly created category.
+- Sample
+  ```bash
+  curl http://127.0.0.1:5000/categories -X POST -H "Content-Type: application/json" -d '{"newCategory":"Pop Culture"}'
+  ```
+  ```
+  {
+  "created": 9, 
+  "success": true
+  }
+  ```
+
 
 ## Testing
 To run the tests, navigate to the backend folder and run the following commands:
